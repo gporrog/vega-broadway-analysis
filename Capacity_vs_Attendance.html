@@ -1,0 +1,224 @@
+<html>
+
+<head>
+    <title>Capacity vs Attendance (2016-2020)</title>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <table style="width: 850px;" cellspacing="5" cellpadding="5">
+        <tbody>
+            <tr>
+                <td style="vertical-align: top;"><strong>Initial questions</strong></td>
+                <td style="vertical-align: top;">What is the relationship between the total grosses and the seats sold?
+                    How full were the shows between 2016 and 2020? What is the amount of seats that theatres didn't
+                    sell?</td>
+            </tr>
+        </tbody>
+    </table>
+    <hr />
+    <div id="vis"></div>
+    <hr />
+    <table style="width: 850px;" cellspacing="5" cellpadding="5">
+        <tbody>
+            <tr>
+                <td style="width: 200px; vertical-align: top;"><strong>Description:&nbsp;</strong></td>
+                <td style="vertical-align: top;">
+                    <p>The visualisation contains a concatenation of two charts: an area chart and a line chart. The
+                        charts are connected using interaction on the second one.</p>
+                    <p>The first one depicts the number of seats sold and the total capacity for all the shows in the
+                        selected years (see data filtering section). Hovering over the areas will show a tooltip with
+                        the date (month, year), seats sold and capacity.</p>
+                    <p>The second one represents the total grosses for all the shows in the selected years. Hovering
+                        over the points will show a tooltip with the date (month, year) and the total grosses. Besides,
+                        this chart allows to select or brush the desired range. This will affect the area chart,
+                        changing or zoom in/out the date range.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;"><strong>Insight:</strong></td>
+                <td style="vertical-align: top;">
+                    <p>The combination of both graphs allows you to view the relationship between tickets sold and the
+                        total gross income for the selected years. At first glance, it is clear how in December, sales
+                        are much higher (possibly due to the end of the year holidays), especially for 2018 and 2019
+                        (215M for both - maximum values of gross income). This corresponds to the number of tickets
+                        sold, which is 1.6 million and 1.55 million respectively. However, for 2019, the difference
+                        concerning the maximum possible capacity was minor, approximately 150K.</p>
+                    <p>Also, it can be seen how in April 2017 and 2018, the number of tickets sold concerning capacity
+                        was outstanding, especially for the last, since it registered the best relationship between
+                        capacity and attendance, not counting the months of 2020 - COVID 19. Only a difference of 100K
+                        and a total income of approximately 200M.</p>
+                    <p>Regarding 2020, January and February, they were surprisingly profitable. Even though it is
+                        visualised that the capacity for both months under 100K compared to 2019, revenues increased
+                        slightly (attendance was very high, more than 92% for both approximately). In March, sales fell
+                        dramatically, given that Broadway suspended the activity due to the pandemic.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;"><strong>Design considerations</strong></td>
+                <td style="vertical-align: top;">
+                    <p>For this visualisation, choose to use a combination of graphs. On the one hand, the main chart is
+                        done using a stacked area chart. I chose this type of display as it is effective for showing
+                        changes over time. I considered using a line chart, but I realised that the difference between
+                        them is better visualised at first glance by using areas. Since the capacity is higher in all
+                        cases, I decided to draw the seats sold first and then the capacity. Helping with a bit of
+                        opacity, you can visualise the difference quickly and effectively, in my opinion.</p>
+                    <p>The second chart is also a visualisation over time, but it consists of a single series, gross
+                        weekly income. Therefore I opted for a line chart. I added this graph since I thought it was
+                        interesting to connect it with the first (primary) graph. At first, I would replicate the
+                        graphic above to show an overview and use it simply for brushing and selection. In the end, I
+                        chose to use another field (gross weekly income) to be able to show the relationship between the
+                        two without losing the brushing and selection to change the main graph.</p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 200px; vertical-align: top;"><strong>Data filtering and transformation:&nbsp;</strong>
+                </td>
+                <td style="vertical-align: top;">I filtered the date field to get the last five years of the dataset,
+                    from
+                    2016 to 2020. Besides, I created the field called Capacity using the following formula: Seats in
+                    Theatre * (Performances + Previews).</td>
+            </tr>
+        </tbody>
+    </table>
+    <script type="text/javascript">
+        var yourVlSpec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+            "data": {
+                "url": "https://raw.githubusercontent.com/gporrog/vega-broadway-analysis/main/grosses.csv",
+                "format": { "type": "csv" }
+            },
+            "transform": [
+                {
+                    "calculate": "toNumber(datum['Seats in Theatre']) * (toNumber(datum['Performances']) + toNumber(datum['Previews']))",
+                    "as": "Capacity"
+                },
+                {
+                    "filter": {
+                        "timeUnit": "year",
+                        "field": "Week Ending",
+                        "range": [2016, 2020]
+                    }
+                }
+            ],
+            "config": {
+                "axis": { "titleFontSize": 24, "titlePadding": 10, "labelFontSize": 20 },
+                "title": { "dy": -10 },
+                "legend": { "titleFontSize": 20, "labelFontSize": 20, "rowPadding": 10 }
+            },
+            "title": {
+                "text": "Capacity vs Attendance (2016-2020)",
+                "fontSize": 24
+            },
+            "vconcat": [
+                {
+                    "spec": {
+                        "width": 600,
+                        "height": 300,
+                        "mark": { "type": "area", "interpolate": "basis", "opacity": 0.8 },
+                        "encoding": {
+                            "x": {
+                                "field": "Week Ending",
+                                "type": "temporal",
+                                "title": "",
+                                "timeUnit": "yearmonth",
+                                "scale": {
+                                    "domain": { "selection": "brush" },
+                                    "domainMin": { "year": 2015, "month": "dec", "date": 1 },
+                                    "domainMax": { "year": 2020, "month": "apr", "date": 1 }
+                                }
+                            },
+                            "y": {
+                                "aggregate": "sum",
+                                "field": { "repeat": "layer" },
+                                "type": "quantitative",
+                                "title": "Number of Seats",
+                                "axis": { "format": "s", "titlePadding": 30 },
+                                "scale": { "zero": false }
+                            },
+                            "color": {
+                                "datum": { "repeat": "layer" },
+                                "type": "nominal",
+                                "scale": { "scheme": "viridis" },
+                                "legend": { "title": "Seats" }
+                            },
+                            "tooltip": [
+                                {
+                                    "field": "yearmonth_Week Ending",
+                                    "type": "temporal",
+                                    "title": "Date",
+                                    "timeUnit": "yearmonth"
+                                },
+                                {
+                                    "field": "Capacity",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "format": ".3s"
+                                },
+                                {
+                                    "field": "Seats Sold",
+                                    "type": "quantitative",
+                                    "aggregate": "sum",
+                                    "format": ".3s"
+                                }
+                            ]
+                        }
+                    },
+                    "repeat": { "layer": ["Capacity", "Seats Sold"] }
+                },
+                {
+                    "width": 600,
+                    "height": 150,
+                    "mark": { "type": "line", "point": { "filled": false, "fill": "white" } },
+                    "selection": { "brush": { "type": "interval" } },
+                    "encoding": {
+                        "x": {
+                            "field": "Week Ending",
+                            "type": "temporal",
+                            "title": "Date",
+                            "timeUnit": "yearmonth",
+                            "scale": {
+                                "domain": [
+                                    { "year": 2015, "month": "dec", "date": 1 },
+                                    { "year": 2020, "month": "apr", "date": 1 }
+                                ]
+                            },
+                            "axis": { "format": "%Y", "tickCount": 5 }
+                        },
+                        "y": {
+                            "field": "Weekly Gross",
+                            "type": "quantitative",
+                            "aggregate": "sum",
+                            "title": "Total Grosses",
+                            "axis": { "format": "s" }
+                        },
+                        "tooltip": [
+                            {
+                                "field": "yearmonth_Week Ending",
+                                "type": "temporal",
+                                "title": "Date",
+                                "timeUnit": "yearmonth"
+                            },
+                            {
+                                "field": "Weekly Gross",
+                                "type": "quantitative",
+                                "aggregate": "sum",
+                                "format": ".5s"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        vegaEmbed("#vis", yourVlSpec);
+    </script>
+</body>
+
+</html>
