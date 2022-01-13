@@ -1,0 +1,173 @@
+<html>
+
+<head>
+  <title>Tickets Price and Weekly Gross of the Theatres (2016-2020)</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <table style="width: 850px;" cellspacing="5" cellpadding="5">
+    <tbody>
+      <tr>
+        <td style="vertical-align: top;"><strong>Initial questions</strong></td>
+        <td style="vertical-align: top;">What is the relationship between the ticket price and the weekly gross? The
+          theatres whose higher weekly grosses: Have the highest ticket prices? Have the highest average ticket price?
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <hr />
+  <div id="vis"></div>
+  <hr />
+  <table style="width: 850px;" cellspacing="5" cellpadding="5">
+    <tbody>
+      <tr>
+        <td style="width: 200px; vertical-align: top;"><strong>Description:&nbsp;</strong></td>
+        <td style="vertical-align: top;">These three bar charts represent the average weekly gross, average top price
+          and average ticket price. Each bar chart is sorted in descending order by the corresponding field. Clicking
+          over one of the theatres will highlight the theatre on the three charts. Hovering the bar charts will show a
+          tooltip with the theatre name and the chart's attribute. The theatre called Minskoff is highlighted in blue on
+          the three charts on initialization.</td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;"><strong>Insight:</strong></td>
+        <td style="vertical-align: top;">
+          <p>At first glance, the Richard Rodgers Theater has the maximum average weekly earnings and the maximum
+            average price of regular and top tickets. Given this theatre owns the hit show Hamilton, and according to <a
+              href="https://en.wikipedia.org/wiki/Richard_Rodgers_Theatre" target="_blank">Wikipedia</a>, this theatre
+            was awarded more than any other on Broadway.</p>
+          <p>Walter Kerr and Richard Rodgers have the highest average ticket prices, yet the second average weekly
+            earnings are more than double the first.</p>
+          <p>I decided to mark Minskoff (home of the Lion King show) initially since I find its case interesting; it is
+            the second with the highest average earnings per week. However, the average price of its tickets is one of
+            the lowest. Perhaps, the popularity of Lion King makes the theatre constantly almost complete, allowing
+            access to incredible profits, that probably if the ticket increased the price, the theatre could lose
+            attendance. A similar case is Gershwin that has an average ticket price that represents more than half that
+            of Walter Kerr but is in the top 3 of theatres with more average weekly earnings.</p>
+          <p>Overall, it is interesting how not in all cases the three charts are related, representing different
+            theatres' business strategies.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;"><strong>Design considerations</strong></td>
+        <td style="vertical-align: top;">
+          <p> I chose to use bar charts since they facilitate the visualisation of quantitative data. In turn, I marked
+            Minskoff Theater initially to attract attention at first sight, to this case that I found interesting. The
+            graphs are ordered in descending order for each of the attributes. For example, this provides immediate
+            identification of which theatre has the highest average weekly earnings or which theatre has the lowest
+            average ticket.</p>
+          <p>I decided to use a tooltip to display the values since specific values are very similar and cannot be
+            identified without this tool (e.g. Majestic and Neil Simon top ticket price). Maybe this makes the chart
+            more complex, but I think it adds value. Also, I added a connection between the three graphs by clicking on
+            one of the theatres; this allows me to immediately identify the clicked theatre's state for the three
+            attributes since the others are coloured grey. It might be easier to identify the theatres if the same
+            attribute was used to order the three graphs, but it would be even more challenging to identify the highest
+            or lowest values. Therefore, the mix of the interaction and the chosen order helps to mitigate this problem.
+          </p>
+          <p>Another point to mention is that there are many theatres (43) in total. So I decided to take the first 19
+            with the most average weekly sales (see filters and data transformation section) and group the rest under
+            the name "All Others" (the remaining amount is found in parentheses). Finally, I want to mention that in the
+            first instance, I plotted two graphs only, the mean of weekly gross and mean of the top ticket price, but I
+            realised that interesting conclusions can be drawn by adding the average ticket price. Another aspect that I
+            considered was, use parallel coordinates. I discarded it since it was very complex and challenging to
+            visualise, given a large number of theatres.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 200px; vertical-align: top;"><strong>Data filtering and transformation:&nbsp;</strong></td>
+        <td style="vertical-align: top;">
+          <p>Filter the data to take the last five years, from 2016 to 2020. Also, grouping by theatre, calculate the
+            average of the weekly gross, top ticket price and avg ticket price. The last is the average for the tickets
+            sold for a given show, but I had to recalculate the average when grouping by the theatre. Sort the theatres
+            by the weekly gross in descending order and take the first 19. Group the rest under the name "All Others
+            (24)". The number in parentheses corresponds to the number of theatres in that group.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <script type="text/javascript">
+    var yourVlSpec = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {
+        "url": "https://raw.githubusercontent.com/gporrog/vega-broadway-analysis/main/grosses.csv",
+        "format": { "type": "csv" }
+      },
+      "transform": [
+        {
+          "filter": {
+            "timeUnit": "year",
+            "field": "Week Ending",
+            "range": [2016, 2020]
+          }
+        },
+        {
+          "aggregate": [
+            { "op": "mean", "field": "Weekly Gross", "as": "Weekly Gross" },
+            { "op": "mean", "field": "Top Ticket Price", "as": "Top Ticket Price" },
+            { "op": "mean", "field": "AVG Ticket Price", "as": "AVG Ticket Price" }
+          ],
+          "groupby": ["Theatre"]
+        },
+        {
+          "window": [{ "op": "row_number", "as": "rank" }],
+          "sort": [{ "field": "Weekly Gross", "order": "descending" }]
+        },
+        {
+          "calculate": "datum.rank < 20 ? datum.Theatre : 'All Others (24)'",
+          "as": "ranked_theatre"
+        }
+      ],
+      "config": {
+        "axis": { "titleFontSize": 24, "titlePadding": 10, "labelFontSize": 20 },
+        "title": { "dy": -10 }
+      },
+      "title": {
+        "text": "Tickets Price and Weekly Gross of the Theatres (2016-2020)",
+        "fontSize": 24
+      },
+      "repeat": {
+        "column": ["Weekly Gross", "Top Ticket Price", "AVG Ticket Price"]
+      },
+      "spec": {
+        "width": 200,
+        "height": 600,
+        "mark": { "type": "bar", "tooltip": true },
+        "selection": {
+          "pts": {
+            "type": "single",
+            "on": "click",
+            "init": { "y": "Minskoff" }
+          }
+        },
+        "encoding": {
+          "x": {
+            "aggregate": "mean",
+            "field": { "repeat": "column" },
+            "type": "quantitative",
+            "axis": { "format": ".2s", "tickCount": 3 }
+          },
+          "y": {
+            "field": "ranked_theatre",
+            "type": "nominal",
+            "title": "Theatre",
+            "sort": "-x"
+          },
+          "color": {
+            "condition": { "selection": "pts", "aggregate": "sum" },
+            "value": "grey"
+          }
+        }
+      }
+    }
+    vegaEmbed("#vis", yourVlSpec);
+  </script>
+</body>
+
+</html>
