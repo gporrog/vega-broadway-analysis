@@ -1,0 +1,238 @@
+<html>
+
+<head>
+  <title>Top 3 Shows with Highest Weekly Gross (2016-2020)</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <table style="width: 850px;" cellspacing="5" cellpadding="5">
+    <tbody>
+      <tr>
+        <td style="vertical-align: top;"><strong>Initial questions</strong></td>
+        <td style="vertical-align: top;">What are the shows with the highest weekly gross income? How much percentage or
+          quantity do they represent of the rest of the shows? How was your gross income in the last five years?</td>
+      </tr>
+    </tbody>
+  </table>
+  <hr />
+  <div id="vis"></div>
+  <hr />
+  <table style="width: 850px;" cellspacing="5" cellpadding="5">
+    <tbody>
+      <tr>
+        <td style="width: 200px; vertical-align: top;"><strong>Description:&nbsp;</strong></td>
+        <td style="vertical-align: top;">
+          <p>The visualization is a combination of two charts.
+            At the bottom, there is a bar chart that shows the shows with the highest weekly earnings (sum) and the rest
+            of the shows grouped under the name of "All Other (201)" - 201 is the remaining number of shows. The chart
+            is
+            ordered in descending order by the amount of income. Using colour differentiates shows the same colours that
+            are used in the upper graphic. Hovering over the bars will appear a tooltip with the show's name and the sum
+            of gross weekly income. Clicking over the bar, you will select a show and also, you will choose it in the
+            upper chart. This can be useful to exclude shows and analyze them individually.</p>
+          <p>The upper chart is an error band that shows the weekly gross of the shows (these are the same as in the
+            lower
+            graph) throughout the selected years. Hovering over the bands, a tooltip will appear showing the date and
+            the
+            amount of weekly gross income for Q1, median and Q3.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;"><strong>Insight:</strong></td>
+        <td style="vertical-align: top;">
+          <p>It can be seen how Hamilton, Lion King and Wicked are top-rated Shows due to weekly gross income. It can be
+            inferred that these three represent approximately 20% of the total gross income in the years 2016-2020. This
+            is even more outstanding, considering that there are 201 more shows. The error band graph shows how Wicked
+            and
+            Lion King assume a more balanced income over the years. However, it was rising to a great extent for
+            Hamilton
+            until reaching the highest peak in 2019. The Q3 for Hamilton assumes the highest weekly income value, which
+            might be due to income in December (see Vis1.html).</p>
+          <p>Another interesting point that can be seen in the chart above is that the maximum amount (Q3) of gross
+            income
+            for "All others" does not exceed the minimum amount of income for Wicked (Q1).</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="vertical-align: top;"><strong>Design considerations</strong></td>
+        <td style="vertical-align: top;">
+          <p>Regarding the lower chart, I decided to use a bar chart because I think they effectively show the
+            magnitudes. In the first instance, I had drawn the three top-grossing shows (Hamilton, Lion King and
+            Wicked), but I felt that some form of comparison to the rest of the shows was missing. Therefore, I decided
+            to add the rest of the shows under the group "All Others (201)". This way, you can show the amount of income
+            corresponding to the 201 shows grouped. Since it is a simple chart, I opted for the simplicity that a bar
+            chart offers me. I added a tooltip to see what the values of each show are, and thus be able to calculate
+            (if you want) relationships (for example, what I mentioned in Insights). By clicking one of the shows or the
+            "All others" group, this will filter the top graph. Which I found useful to be able to exclude the shows and
+            analyze them individually.</p>
+          <p>Regarding the upper graph, I opted to use an error band to show changes over time effectively. Besides, I
+            wanted to show a different view of the weekly gross income to not repeat the same line from the previous
+            visualisation - Vis1. Consider using a line graph, but the result would have been different. The lines would
+            have shown totals and not the Qs and the median, which would not reveal the insights I mentioned above.
+            Using an error-band chart, the shows can be differentiated easily and allowing to understand how the
+            corresponding values were for the different quartiles. Also, the colours (keeping the same line as the lower
+            graph), a bit of opacity, and the lines marking the Q1 / Q3 make the shows' distinction easier. However, add
+            a tooltip to view the total median and quartile values quickly and in one place.</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 200px; vertical-align: top;"><strong>Data filtering and transformation:&nbsp;</strong></td>
+        <td style="vertical-align: top;">
+          I filtered the date field to get the last five years of the dataset, from 2016 to 2020.
+          Use a ranking in descending order by the sum of weekly grosses to take the first three shows. The rest are
+          grouped under the name "All Others (201)". Use two different aggregations, one to take the gross weekly income
+          grouped by date and show. Another to be able to calculate the total grosses per show, this was necessary to
+          calculate the ranking.</td>
+      </tr>
+    </tbody>
+  </table>
+  <script type="text/javascript">
+    var yourVlSpec = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v4.json",
+      "data": {
+        "url": "https://raw.githubusercontent.com/gporrog/vega-broadway-analysis/main/grosses.csv",
+        "format": { "type": "csv" }
+      },
+      "transform": [
+        {
+          "filter": {
+            "timeUnit": "year",
+            "field": "Week Ending",
+            "range": [2016, 2020]
+          }
+        },
+        {
+          "aggregate": [
+            { "op": "sum", "field": "Weekly Gross", "as": "Weekly Gross" }
+          ],
+          "groupby": ["Show", "Week Ending"]
+        },
+        {
+          "joinaggregate": [
+            { "op": "sum", "field": "Weekly Gross", "as": "Sum Weekly Gross" }
+          ],
+          "groupby": ["Show"]
+        },
+        {
+          "window": [
+            { "op": "dense_rank", "field": "Sum Weekly Gross", "as": "rank" }
+          ],
+          "sort": [{ "field": "Sum Weekly Gross", "order": "descending" }]
+        },
+        {
+          "calculate": "datum.rank < 4 ? datum.Show : 'All Others (201)'",
+          "as": "ranked_show"
+        }
+      ],
+      "config": {
+        "axis": { "titleFontSize": 24, "titlePadding": 10, "labelFontSize": 20 },
+        "title": { "dy": -10 },
+        "legend": {
+          "titleFontSize": 20,
+          "labelFontSize": 20,
+          "rowPadding": 10,
+          "symbolOpacity": 0.8
+        }
+      },
+      "title": {
+        "text": "Top 3 Shows with Highest Weekly Gross (2016-2020)",
+        "fontSize": 24
+      },
+      "vconcat": [
+        {
+          "width": 600,
+          "height": 300,
+          "mark": { "type": "errorband", "extent": "iqr", "borders": true },
+          "transform": [{ "filter": { "selection": "click" } }],
+          "encoding": {
+            "color": {
+              "field": "ranked_show",
+              "type": "nominal",
+              "scale": { "scheme": "viridis" }
+            },
+            "x": { "field": "Week Ending", "timeUnit": "year", "title": "Date", "axis": { "tickCount": 5 } },
+            "y": {
+              "aggregate": "average",
+              "field": "Weekly Gross",
+              "type": "quantitative",
+              "axis": { "format": "s" },
+              "scale": { "zero": false }
+            },
+            "tooltip": [
+              { "title": "Show", "field": "ranked_show", "type": "nominal" },
+              {
+                "title": "Year",
+                "field": "year_Week Ending",
+                "type": "temporal",
+                "format": "%Y"
+              },
+              {
+                "title": "Q1 of Weekly Gross",
+                "field": "lower_Weekly Gross",
+                "type": "quantitative",
+                "format": ".3s"
+              },
+              {
+                "title": "Median of Weekly Gross",
+                "field": "center_Weekly Gross",
+                "type": "quantitative",
+                "format": ".3s"
+              },
+              {
+                "title": "Q3 of Weekly Gross",
+                "field": "upper_Weekly Gross",
+                "type": "quantitative",
+                "format": ".3s"
+              }
+            ]
+          }
+        },
+        {
+          "width": 600,
+          "height": 120,
+          "mark": { "type": "bar", "tooltip": true },
+          "encoding": {
+            "color": {
+              "condition": {
+                "selection": "click",
+                "field": "ranked_show",
+                "title": "Shows",
+                "scale": { "scheme": "viridis" }
+              },
+              "value": "lightgray"
+            },
+            "x": {
+              "aggregate": "sum",
+              "field": "Weekly Gross",
+              "type": "quantitative",
+              "title": "Sum of Weekly Gross",
+              "axis": { "format": "s", "tickCount": 5 }
+            },
+            "y": {
+              "field": "ranked_show",
+              "type": "ordinal",
+              "title": null,
+              "sort": "-x"
+            },
+            "tooltip": [
+              { "field": "ranked_show", "title": "Show" },
+              { "field": "Weekly Gross", "format": "s", "aggregate": "sum" }
+            ]
+          },
+          "selection": { "click": { "encodings": ["color"], "type": "single" } }
+        }
+      ]
+    }
+    vegaEmbed("#vis", yourVlSpec);
+  </script>
+</body>
+
+</html>
